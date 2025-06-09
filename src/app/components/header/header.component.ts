@@ -4,66 +4,8 @@ import { Component } from '@angular/core';
   selector: 'app-header',
   standalone: true,
   imports: [],
-  template: `
-    <nav class="navbar navbar-expand-lg custom-navbar">
-      <div class="container-fluid">
-        <a class="navbar-brand" href="#">Student Registration Form</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-          aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <form class="d-flex ms-auto search-form" role="search">
-            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-            <button class="btn btn-outline-light" type="submit">Search</button>
-          </form>
-        </div>
-      </div>
-    </nav>
-  `,
-  styles: [`
-    .custom-navbar {
-      background: linear-gradient(to right, #1C2541, #3A506B);
-      padding: 1rem 2rem;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .navbar-brand {
-      font-family: 'Roboto', sans-serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .navbar-toggler {
-      border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .navbar-toggler-icon {
-      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-    }
-
-    .search-form input.form-control {
-      border-radius: 10px;
-      padding: 0.5rem 1rem;
-    }
-
-    .search-form button {
-      border-radius: 10px;
-      margin-left: 0.5rem;
-    }
-
-    @media (max-width: 768px) {
-      .navbar-brand {
-        font-size: 20px;
-      }
-
-      .search-form {
-        width: 100%;
-        margin-top: 1rem;
-      }
-    }
-  `]
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.css'
+  
 })
 export class HeaderComponent { }

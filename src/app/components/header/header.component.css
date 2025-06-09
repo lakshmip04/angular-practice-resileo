@@ -1,0 +1,41 @@
+.custom-navbar {
+    background: linear-gradient(to right, #1C2541, #3A506B);
+    padding: 1rem 2rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-brand {
+    font-family: 'Roboto', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .navbar-toggler {
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  }
+
+  .search-form input.form-control {
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+  }
+
+  .search-form button {
+    border-radius: 10px;
+    margin-left: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-brand {
+      font-size: 20px;
+    }
+
+    .search-form {
+      width: 100%;
+      margin-top: 1rem;
+    }
+  }
