@@ -22,6 +22,7 @@
     "@angular/router": "^19.1.0",
     "@tailwindcss/postcss": "^4.1.8",
     "bootstrap": "^5.3.6",
+    "country-state-city": "^3.2.1",
     "postcss": "^8.5.4",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.8",

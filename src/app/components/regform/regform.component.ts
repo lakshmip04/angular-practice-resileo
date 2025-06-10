@@ -1,5 +1,4 @@
-
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -11,9 +10,16 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatGridListModule } from '@angular/material/grid-list';
 import { MatCardModule } from '@angular/material/card';
+import { MatSelectModule } from '@angular/material/select';
+import { Country, State } from 'country-state-city';
+import { ICountry, IState, ICity } from 'country-state-city'
 
 @Component({
   selector: 'app-regform',
+  standalone: true,
+  templateUrl : './regform.component.html',
+  styleUrls: ['./regform.component.css'],
+ 
   imports: [
     CommonModule,
     MatButtonModule,
@@ -26,13 +32,24 @@ import { MatCardModule } from '@angular/material/card';
     MatDatepickerModule,
     MatNativeDateModule,
     MatGridListModule,
-    MatCardModule
-  ],
-  templateUrl: './regform.component.html',
-  styleUrl: './regform.component.css'
+    MatCardModule,
+    MatSelectModule
+  ]
 })
-export class RegformComponent {
+export class RegformComponent implements OnInit {
   private _formBuilder = inject(FormBuilder);
+
+  // Gender options
+  genderOptions = [
+    { value: 'Male', viewValue: 'Male' },
+    { value: 'Female', viewValue: 'Female' },
+    { value: 'Other', viewValue: 'Other' },
+    { value: 'PreferNotToSay', viewValue: 'Prefer not to say' }
+  ];
+
+  // Country and state data
+  countries: ICountry[] = [];
+  states: IState[] = [];
 
   firstFormGroup = this._formBuilder.group({
     firstName: ['', Validators.required],
@@ -47,25 +64,77 @@ export class RegformComponent {
     street: ['', Validators.required],
     city: ['', Validators.required],
     state: ['', Validators.required],
-    zip: ['', [Validators.required, Validators.pattern(/^\d{6}(-\d{5})?$/)]],
-    country: ['', Validators.required]
+    zip: ['', [Validators.required, Validators.pattern(/^\d{5,6}(-\d{4})?$/)]],
+    country: ['IN', Validators.required] // Default to India
   });
 
   isLinear = false;
   combinedData: any = {};
 
-  onSubmit() {
-    // Combine data from both form groups
-    this.combinedData = {
-      ...this.firstFormGroup.value,
-      ...this.secondFormGroup.value
-    };
+  ngOnInit() {
+    // Load all countries
+    this.countries = Country.getAllCountries();
 
-    // Here you would typically send the data to a server
-    console.log('Form submitted with data:', this.combinedData);
+    // Initialize states for default country
+    this.updateStates('IN');
 
-    // For demonstration, we'll just show an alert
-    alert('Form submitted successfully! Check the console for the submitted data.');
+    // Listen for country changes
+    this.secondFormGroup.get('country')?.valueChanges.subscribe(countryCode => {
+      if (countryCode) {
+        this.updateStates(countryCode);
+        // Reset state when country changes
+        this.secondFormGroup.get('state')?.reset();
+      }
+    });
   }
 
+  updateStates(countryCode: string) {
+    this.states = State.getStatesOfCountry(countryCode);
+  }
+
+  onCountryChange(event: any) {
+    const countryCode = event.value;
+    this.updateStates(countryCode);
+    this.secondFormGroup.get('state')?.reset();
+  }
+
+  getGenderLabel(value?: string): string {
+    if (!value) return '';
+    const option = this.genderOptions.find(opt => opt.value === value);
+    return option ? option.viewValue : value;
+  }
+
+  getCountryName(countryCode?: string | null): string {
+    if (!countryCode) return '';
+    const country = Country.getCountryByCode(countryCode);
+    return country ? country.name : countryCode || '';
+  }
+
+  getStateName(stateCode?: string | null): string {
+    if (!stateCode) return '';
+    const countryCode = this.secondFormGroup.get('country')?.value;
+    if (!countryCode) return '';
+
+    const state = State.getStateByCodeAndCountry(stateCode, countryCode);
+    return state ? state.name : stateCode || '';
+  }
+
+  onSubmit() {
+    if (this.firstFormGroup.valid && this.secondFormGroup.valid) {
+      const countryCode = this.secondFormGroup.get('country')?.value;
+      const stateCode = this.secondFormGroup.get('state')?.value;
+
+      this.combinedData = {
+        ...this.firstFormGroup.value,
+        ...this.secondFormGroup.value,
+        countryName: this.getCountryName(countryCode),
+        stateName: this.getStateName(stateCode)
+      };
+
+      console.log('Form submitted with data:', this.combinedData);
+      alert('Form submitted successfully! Check the console for the submitted data.');
+    } else {
+      alert('Please fill out all required fields correctly.');
+    }
+  }
 }
