@@ -1,18 +1,18 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './components/header/header.component';
-import { RegformComponent } from './components/regform/regform.component';
+
 
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, HeaderComponent,  RegformComponent],
+  imports: [RouterOutlet, HeaderComponent],
   template: `
     
     <app-header/>
-    <app-regform/>
-
     <router-outlet />
+    
+    
   `,
   styles: [],
 })
