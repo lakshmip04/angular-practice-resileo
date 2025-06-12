@@ -1,0 +1,27 @@
+<div class="form-wrapper">
+
+<form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <p class="login">Login</p>
+    <mat-form-field>
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" required>
+      <mat-error *ngIf="loginForm.get('email')?.hasError('required')">Email is required</mat-error>
+      <mat-error *ngIf="loginForm.get('email')?.hasError('email')">Invalid email format</mat-error>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Password</mat-label>
+      <input matInput type="password" formControlName="password" required>
+      <mat-error *ngIf="loginForm.get('password')?.hasError('required') && loginForm.get('password')?.touched">Password is required</mat-error>
+      <mat-error *ngIf="loginForm.get('password')?.hasError('minlength') && loginForm.get('password')?.touched">Password must be at least 8 characters long</mat-error>
+      <mat-error *ngIf="loginForm.get('password')?.hasError('passwordStrength') && loginForm.get('password')?.touched">
+        Password must contain uppercase, lowercase, number, and special character.
+      </mat-error>
+    </mat-form-field>
+    <div class="buttons">
+        <button  mat-raised-button color="primary" type="submit" >Login</button>
+        <button mat-button color="accent" routerLink="/regform">Register</button>
+    </div>
+    
+  </form>
+</div>

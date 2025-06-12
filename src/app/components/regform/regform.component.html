@@ -33,8 +33,12 @@
             <input matInput [matDatepicker]="picker" formControlName="dob" required>
             <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
             <mat-datepicker #picker></mat-datepicker>
+            
             <mat-error *ngIf="firstFormGroup.get('dob')?.hasError('required')">
               Date of birth is required
+            </mat-error>
+            <mat-error *ngIf="firstFormGroup.get('dob')?.hasError('invalidAge')">
+              Age must be between 5 and 18 years.
             </mat-error>
           </mat-form-field>
 
@@ -65,7 +69,7 @@
 
           <mat-form-field appearance="fill" class="form-field">
             <mat-label>Contact Number</mat-label>
-            <input matInput type="tel" placeholder="+1 (123) 456-7890" formControlName="contact" required>
+            <input matInput type="tel" placeholder="+91 xxxxxxxxxx" formControlName="contact" required>
             <mat-error *ngIf="firstFormGroup.get('contact')?.hasError('required')">
               Contact number is required
             </mat-error>
