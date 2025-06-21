@@ -35,7 +35,10 @@ form > mat-form-field{
     
 }
 .buttons > button{
-    width: 2px;
+    width: 200px;
+    margin-left: 20px;
+    background-color: rgb(231, 231, 243);
+    color: rgb(33, 33, 141);
 }
 .login{
     width: 68%;
