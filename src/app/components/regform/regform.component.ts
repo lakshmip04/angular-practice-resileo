@@ -17,6 +17,7 @@ import { Country, State } from 'country-state-city';
 import { ICountry, IState } from 'country-state-city';
 
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog'; // Keep MAT_DIALOG_DATA for the token
+import { StudentService, StudentData } from '../../services/student.service';
 
 
 
@@ -153,6 +154,7 @@ export class PreviewDialogComponent {
 export class RegformComponent implements OnInit {
   private _formBuilder = inject(FormBuilder);
   private dialog = inject(MatDialog); // Inject MatDialog service
+  private studentService = inject(StudentService); // Inject StudentService
 
   @ViewChild('stepper') stepper!: MatStepper; // Get reference to the stepper
 
@@ -365,20 +367,74 @@ export class RegformComponent implements OnInit {
 
     const result = await dialogRef.afterClosed().toPromise(); // Use .toPromise() for async/await
 
-    if (result === true) {
-      const confirmed = await this.openConfirmationDialog();
+         if (result === true) {
+       const confirmed = await this.openConfirmationDialog();
 
-      if (confirmed) {
-        console.log('Final Data Submitted:', this.combinedData);
-        
-        this.stepper.reset(); // Reset the stepper
-        this.firstFormGroup.reset(); // Reset form groups
-        this.secondFormGroup.reset();
-      } else {
-        console.log('Final submission cancelled by user.');
-      }
-    } else {
-      console.log('Preview closed, user may want to edit.');
-    }
+       if (confirmed) {
+         // Prepare data for API submission
+         const studentData: StudentData = {
+           firstName: this.combinedData.firstName,
+           lastName: this.combinedData.lastName,
+           dob: this.combinedData.dob,
+           gender: this.combinedData.gender,
+           email: this.combinedData.email,
+           contact: this.combinedData.contact,
+           street: this.combinedData.street,
+           city: this.combinedData.city,
+           state: this.combinedData.state,
+           zip: this.combinedData.zip,
+           country: this.combinedData.country,
+           genderName: this.combinedData.genderName,
+           countryName: this.combinedData.countryName,
+           stateName: this.combinedData.stateName
+         };
+
+         try {
+           console.log('Submitting data to API:', studentData);
+           
+           // Call the student service to submit data
+           const response = await this.studentService.submitStudentRegistration(studentData).toPromise();
+           
+           if (response?.success) {
+             // Show success dialog
+             this.dialog.open(AlertDialogComponent, {
+               width: '400px',
+               data: {
+                 title: 'Success!',
+                 message: 'Student registration submitted successfully!',
+                 type: 'alert'
+               }
+             });
+
+             console.log('API Response:', response);
+             
+             // Reset forms after successful submission
+             this.stepper.reset();
+             this.firstFormGroup.reset();
+             this.secondFormGroup.reset();
+             this.combinedData = {};
+           } else {
+             throw new Error(response?.message || 'Submission failed');
+           }
+         } catch (error) {
+           console.error('Submission error:', error);
+           
+           // Show error dialog
+           this.dialog.open(AlertDialogComponent, {
+             width: '400px',
+             data: {
+               title: 'Submission Failed',
+               message: 'There was an error submitting your registration. Please try again.',
+               type: 'alert',
+               details: [error instanceof Error ? error.message : 'Unknown error occurred']
+             }
+           });
+         }
+       } else {
+         console.log('Final submission cancelled by user.');
+       }
+     } else {
+       console.log('Preview closed, user may want to edit.');
+     }
   }
 }
