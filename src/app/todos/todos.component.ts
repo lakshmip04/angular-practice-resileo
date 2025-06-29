@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
+import { Component,inject, OnInit,signal } from '@angular/core';
 import { CounterComponent } from '../components/counter/counter.component';
+import { TodosService } from '../services/todos.service';
+import { Todo } from '../model/todo.type';
+import { catchError } from 'rxjs';
 
 @Component({
   selector: 'app-todos',
@@ -7,7 +10,22 @@ import { CounterComponent } from '../components/counter/counter.component';
   templateUrl: './todos.component.html',
   styleUrl: './todos.component.css'
 })
-export class TodosComponent {
+export class TodosComponent implements OnInit {
+
+todoService = inject(TodosService)
+todoItems = signal<Todo[]>([]); 
+ngOnInit(): void {
+  
+  // console.log(this.todoService.todoItems)
+  this.todoService.getinfoFromApi().pipe(
+    catchError((err)=>{
+      console.log(err);
+      throw err;
+    })
+  ).subscribe((todos)=>{
+    this.todoItems.set(todos);
+  });
+}
   //   To study type script angular basics:
 // 1.Map
 // 2.Filter
