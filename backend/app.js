@@ -38,4 +38,3 @@ students.forEach((student, index) => {
     console.log(`${index + 1}. ${student.name} (Age: ${student.age})`);
 });
 
-console.log('\n=== Node.js test completed successfully! ==='); 

@@ -149,7 +149,7 @@ server.on('error', (err) => {
 
 // Graceful shutdown
 process.on('SIGINT', () => {
-    console.log('\n🛑 Shutting down server gracefully...');
+    console.log('\n🛑 Shutting down server ...');
     server.close(() => {
         console.log('✅ Server closed successfully');
         process.exit(0);
