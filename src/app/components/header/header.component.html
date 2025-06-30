@@ -1,17 +1,35 @@
 <nav class="navbar navbar-expand-lg custom-navbar">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">Student Registration Form</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-        data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-        aria-expanded="false" aria-label="Toggle navigation">
+      <a class="navbar-brand" routerLink="/">Student Registration </a>
+      <button 
+        class="navbar-toggler" 
+        type="button" 
+        (click)="toggleMobileMenu()"
+        [attr.aria-expanded]="isMobileMenuOpen"
+        aria-controls="navbarSupportedContent" 
+        aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <form class="d-flex ms-auto search-form" role="search">
-          <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
+      <div class="collapse navbar-collapse" id="navbarSupportedContent" [class.show]="isMobileMenuOpen">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMobileMenu()">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/regform" routerLinkActive="active" (click)="closeMobileMenu()">Register Student</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/students" routerLinkActive="active" (click)="closeMobileMenu()">Student List</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" routerLink="/todos" routerLinkActive="active" (click)="closeMobileMenu()">Practice</a>
+          </li>
+         
+        </ul>
+        <form class="d-flex search-form" role="search">
+          <input class="form-control me-2" type="search" placeholder="Search students..." aria-label="Search" />
           <button class="btn btn-outline-light" type="submit">Search</button>
         </form>
-        <small routerLink="/todos">extra</small>
       </div>
     </div>
-  </nav>
+</nav>

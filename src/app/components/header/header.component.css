@@ -9,34 +9,114 @@
     font-family: 'Roboto', sans-serif;
     font-size: 26px;
     font-weight: 700;
-    color: #ffffff;
+    color: #ffffff !important;
+    text-decoration: none;
+  }
+
+  .navbar-brand:hover {
+    color: #f8f9fa !important;
+  }
+
+  .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .navbar-nav .nav-link:hover {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .navbar-nav .nav-link.active {
+    color: #ffffff !important;
+    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: 600;
   }
 
   .navbar-toggler {
     border-color: rgba(255, 255, 255, 0.5);
+    padding: 0.25rem 0.5rem;
+  }
+
+  .navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
   }
 
   .navbar-toggler-icon {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%23fff' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
   }
 
+  .search-form {
+    margin-left: 1rem;
+  }
+
   .search-form input.form-control {
     border-radius: 10px;
     padding: 0.5rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+
+  .search-form input.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .search-form input.form-control:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
   }
 
   .search-form button {
     border-radius: 10px;
     margin-left: 0.5rem;
+    border-color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.8);
   }
 
-  @media (max-width: 768px) {
+  .search-form button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.7);
+    color: white;
+  }
+
+  @media (max-width: 991px) {
     .navbar-brand {
       font-size: 20px;
+    }
+
+    .navbar-nav {
+      margin-top: 1rem;
+    }
+
+    .navbar-nav .nav-link {
+      margin: 0.25rem 0;
+      text-align: center;
     }
 
     .search-form {
       width: 100%;
       margin-top: 1rem;
+      margin-left: 0;
+    }
+
+    .custom-navbar {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 576px) {
+    .navbar-brand {
+      font-size: 18px;
+    }
+    
+    .search-form input.form-control {
+      font-size: 14px;
     }
   }

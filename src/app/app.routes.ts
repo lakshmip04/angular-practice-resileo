@@ -31,5 +31,11 @@ export const routes: Routes = [
         loadComponent() {
             return import('./components/student-list/student-list.component').then(m=>m.StudentListComponent)
         },
+    },
+    {
+        path: 'counter',
+        loadComponent() {
+            return import('./components/counter/counter.component').then(m=>m.CounterComponent)
+        },
     }
 ];
