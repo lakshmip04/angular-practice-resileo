@@ -1,21 +1,21 @@
-// Step 4: Express Server for Student Registration System
+// Step 4: Express Server for Student Registration System with PostgreSQL
 const express = require('express');
 const cors = require('cors');
 const { 
     validateStudentData, 
     generateId, 
     formatDate,
-    APP_CONSTANTS,
-    SAMPLE_STUDENTS 
+    APP_CONSTANTS
 } = require('./utils');
+const database = require('./database');
 
 // Create Express application
 const app = express();
 const PORT = process.env.PORT || APP_CONSTANTS.DEFAULT_PORT;
 const HOST = process.env.HOST || APP_CONSTANTS.DEFAULT_HOST;
 
-// In-memory storage for students (in production, this would be a database)
-let students = [...SAMPLE_STUDENTS];
+// Test database connection on startup
+database.testConnection();
 
 // Middleware
 app.use(cors()); // Enable CORS for all routes
@@ -51,49 +51,69 @@ app.get('/', (req, res) => {
 });
 
 // 2. Health check route
-app.get('/api/health', (req, res) => {
-    res.json({
-        success: true,
-        message: 'Server is healthy',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
-        memory: process.memoryUsage(),
-        students_count: students.length
-    });
+app.get('/api/health', async (req, res) => {
+    try {
+        const dbConnected = await database.testConnection();
+        res.json({
+            success: true,
+            message: 'Server is healthy',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            database: {
+                connected: dbConnected,
+                type: 'PostgreSQL'
+            }
+        });
+    } catch (error) {
+        res.status(APP_CONSTANTS.STATUS_CODES.SERVER_ERROR).json({
+            success: false,
+            message: 'Server health check failed',
+            timestamp: new Date().toISOString(),
+            database: {
+                connected: false,
+                error: error.message
+            }
+        });
+    }
 });
 
 // 3. Get all students
-app.get('/api/students', (req, res) => {
+app.get('/api/students', async (req, res) => {
     try {
         // Optional query parameters for filtering/pagination
-        const { page = 1, limit = 10, search } = req.query;
+        const { page = 1, limit = 10, search = '' } = req.query;
         
-        let filteredStudents = [...students];
+        // Get students from database
+        const result = await database.getAllStudents(search, parseInt(page), parseInt(limit));
         
-        // Search functionality
-        if (search) {
-            const searchTerm = search.toLowerCase();
-            filteredStudents = students.filter(student => 
-                student.firstName.toLowerCase().includes(searchTerm) ||
-                student.lastName.toLowerCase().includes(searchTerm) ||
-                student.email.toLowerCase().includes(searchTerm)
-            );
-        }
-        
-        // Pagination
-        const startIndex = (page - 1) * limit;
-        const endIndex = startIndex + parseInt(limit);
-        const paginatedStudents = filteredStudents.slice(startIndex, endIndex);
+        // Convert snake_case to camelCase for frontend
+        const formattedStudents = result.students.map(student => ({
+            id: student.id,
+            firstName: student.first_name,
+            lastName: student.last_name,
+            email: student.email,
+            contact: student.contact,
+            dob: student.dob,
+            gender: student.gender,
+            street: student.street,
+            city: student.city,
+            state: student.state,
+            zip: student.zip,
+            country: student.country,
+            createdAt: student.created_at,
+            updatedAt: student.updated_at
+        }));
         
         res.json({
             success: true,
             message: 'Students retrieved successfully',
-            data: paginatedStudents,
+            data: formattedStudents,
             pagination: {
                 current_page: parseInt(page),
                 per_page: parseInt(limit),
-                total_students: filteredStudents.length,
-                total_pages: Math.ceil(filteredStudents.length / limit)
+                total_students: result.totalCount,
+                total_pages: Math.ceil(result.totalCount / parseInt(limit))
             }
         });
     } catch (error) {
@@ -107,10 +127,10 @@ app.get('/api/students', (req, res) => {
 });
 
 // 4. Get student by ID
-app.get('/api/students/:id', (req, res) => {
+app.get('/api/students/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const student = students.find(s => s.id === id);
+        const student = await database.getStudentById(id);
         
         if (!student) {
             return res.status(APP_CONSTANTS.STATUS_CODES.NOT_FOUND).json({
@@ -120,10 +140,28 @@ app.get('/api/students/:id', (req, res) => {
             });
         }
         
+        // Convert snake_case to camelCase for frontend
+        const formattedStudent = {
+            id: student.id,
+            firstName: student.first_name,
+            lastName: student.last_name,
+            email: student.email,
+            contact: student.contact,
+            dob: student.dob,
+            gender: student.gender,
+            street: student.street,
+            city: student.city,
+            state: student.state,
+            zip: student.zip,
+            country: student.country,
+            createdAt: student.created_at,
+            updatedAt: student.updated_at
+        };
+        
         res.json({
             success: true,
             message: 'Student retrieved successfully',
-            data: student
+            data: formattedStudent
         });
     } catch (error) {
         console.error('Error fetching student:', error);
@@ -136,7 +174,7 @@ app.get('/api/students/:id', (req, res) => {
 });
 
 // 5. Create new student (This is what our Angular app will use)
-app.post('/api/students', (req, res) => {
+app.post('/api/students', async (req, res) => {
     try {
         const studentData = req.body;
         
@@ -151,8 +189,8 @@ app.post('/api/students', (req, res) => {
         }
         
         // Check if email already exists
-        const existingStudent = students.find(s => s.email === studentData.email);
-        if (existingStudent) {
+        const emailExists = await database.emailExists(studentData.email);
+        if (emailExists) {
             return res.status(APP_CONSTANTS.STATUS_CODES.BAD_REQUEST).json({
                 success: false,
                 message: 'Student with this email already exists',
@@ -160,23 +198,39 @@ app.post('/api/students', (req, res) => {
             });
         }
         
-        // Create new student
-        const newStudent = {
+        // Create new student with generated ID
+        const newStudentData = {
             id: generateId(),
-            ...studentData,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            ...studentData
         };
         
-        // Add to students array
-        students.push(newStudent);
+        // Save to database
+        const savedStudent = await database.createStudent(newStudentData);
         
-        console.log(`New student created: ${newStudent.firstName} ${newStudent.lastName} (${newStudent.email})`);
+        // Convert snake_case to camelCase for frontend
+        const formattedStudent = {
+            id: savedStudent.id,
+            firstName: savedStudent.first_name,
+            lastName: savedStudent.last_name,
+            email: savedStudent.email,
+            contact: savedStudent.contact,
+            dob: savedStudent.dob,
+            gender: savedStudent.gender,
+            street: savedStudent.street,
+            city: savedStudent.city,
+            state: savedStudent.state,
+            zip: savedStudent.zip,
+            country: savedStudent.country,
+            createdAt: savedStudent.created_at,
+            updatedAt: savedStudent.updated_at
+        };
+        
+        console.log(`New student created: ${formattedStudent.firstName} ${formattedStudent.lastName} (${formattedStudent.email})`);
         
         res.status(APP_CONSTANTS.STATUS_CODES.CREATED).json({
             success: true,
             message: 'Student registered successfully',
-            data: newStudent
+            data: formattedStudent
         });
         
     } catch (error) {
@@ -190,13 +244,14 @@ app.post('/api/students', (req, res) => {
 });
 
 // 6. Update student
-app.put('/api/students/:id', (req, res) => {
+app.put('/api/students/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const updateData = req.body;
         
-        const studentIndex = students.findIndex(s => s.id === id);
-        if (studentIndex === -1) {
+        // Check if student exists
+        const existingStudent = await database.getStudentById(id);
+        if (!existingStudent) {
             return res.status(APP_CONSTANTS.STATUS_CODES.NOT_FOUND).json({
                 success: false,
                 message: 'Student not found',
@@ -205,7 +260,7 @@ app.put('/api/students/:id', (req, res) => {
         }
         
         // Validate updated data
-        const validation = validateStudentData({ ...students[studentIndex], ...updateData });
+        const validation = validateStudentData(updateData);
         if (!validation.isValid) {
             return res.status(APP_CONSTANTS.STATUS_CODES.BAD_REQUEST).json({
                 success: false,
@@ -214,17 +269,43 @@ app.put('/api/students/:id', (req, res) => {
             });
         }
         
-        // Update student
-        students[studentIndex] = {
-            ...students[studentIndex],
-            ...updateData,
-            updatedAt: new Date().toISOString()
+        // Check if email already exists (excluding current student)
+        if (updateData.email && updateData.email !== existingStudent.email) {
+            const emailExists = await database.emailExists(updateData.email, id);
+            if (emailExists) {
+                return res.status(APP_CONSTANTS.STATUS_CODES.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Student with this email already exists',
+                    email: updateData.email
+                });
+            }
+        }
+        
+        // Update student in database
+        const updatedStudent = await database.updateStudent(id, updateData);
+        
+        // Convert snake_case to camelCase for frontend
+        const formattedStudent = {
+            id: updatedStudent.id,
+            firstName: updatedStudent.first_name,
+            lastName: updatedStudent.last_name,
+            email: updatedStudent.email,
+            contact: updatedStudent.contact,
+            dob: updatedStudent.dob,
+            gender: updatedStudent.gender,
+            street: updatedStudent.street,
+            city: updatedStudent.city,
+            state: updatedStudent.state,
+            zip: updatedStudent.zip,
+            country: updatedStudent.country,
+            createdAt: updatedStudent.created_at,
+            updatedAt: updatedStudent.updated_at
         };
         
         res.json({
             success: true,
             message: 'Student updated successfully',
-            data: students[studentIndex]
+            data: formattedStudent
         });
         
     } catch (error) {
@@ -238,12 +319,14 @@ app.put('/api/students/:id', (req, res) => {
 });
 
 // 7. Delete student
-app.delete('/api/students/:id', (req, res) => {
+app.delete('/api/students/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const studentIndex = students.findIndex(s => s.id === id);
         
-        if (studentIndex === -1) {
+        // Check if student exists and delete
+        const deletedStudent = await database.deleteStudent(id);
+        
+        if (!deletedStudent) {
             return res.status(APP_CONSTANTS.STATUS_CODES.NOT_FOUND).json({
                 success: false,
                 message: 'Student not found',
@@ -251,12 +334,28 @@ app.delete('/api/students/:id', (req, res) => {
             });
         }
         
-        const deletedStudent = students.splice(studentIndex, 1)[0];
+        // Convert snake_case to camelCase for frontend
+        const formattedStudent = {
+            id: deletedStudent.id,
+            firstName: deletedStudent.first_name,
+            lastName: deletedStudent.last_name,
+            email: deletedStudent.email,
+            contact: deletedStudent.contact,
+            dob: deletedStudent.dob,
+            gender: deletedStudent.gender,
+            street: deletedStudent.street,
+            city: deletedStudent.city,
+            state: deletedStudent.state,
+            zip: deletedStudent.zip,
+            country: deletedStudent.country,
+            createdAt: deletedStudent.created_at,
+            updatedAt: deletedStudent.updated_at
+        };
         
         res.json({
             success: true,
             message: 'Student deleted successfully',
-            data: deletedStudent
+            data: formattedStudent
         });
         
     } catch (error) {
@@ -303,7 +402,7 @@ app.listen(PORT, HOST, () => {
     console.log(`   PUT    http://${HOST}:${PORT}/api/students/:id`);
     console.log(`   DELETE http://${HOST}:${PORT}/api/students/:id`);
     console.log('\n💡 Press Ctrl+C to stop the server');
-    console.log(`📊 Initial students loaded: ${students.length}`);
+    console.log('📊 PostgreSQL database connected and ready');
 });
 
 // Graceful shutdown
