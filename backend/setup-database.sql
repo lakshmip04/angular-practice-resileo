@@ -25,8 +25,8 @@ CREATE INDEX IF NOT EXISTS idx_students_email ON students(email);
 -- Insert sample data
 INSERT INTO students (id, first_name, last_name, email, contact, dob, gender, street, city, state, zip, country) 
 VALUES 
-    ('1', 'John', 'Doe', 'john.doe@example.com', '+1-555-0123', '2000-01-15', 'Male', '123 Main St', 'Los Angeles', 'CA', '90210', 'US'),
-    ('2', 'Jane', 'Smith', 'jane.smith@example.com', '+1-555-0456', '1999-05-20', 'Female', '456 Oak Ave', 'New York', 'NY', '10001', 'US')
+    ('1', 'John', 'Doe', 'john.doe@example.com', '+1-555-0123', '2019-01-15', 'Male', '123 Main St', 'Los Angeles', 'CA', '90210', 'US'),
+    ('2', 'Jane', 'Smith', 'jane.smith@example.com', '+1-555-0456', '2018-05-20', 'Female', '456 Oak Ave', 'New York', 'NY', '10001', 'US')
 ON CONFLICT (email) DO NOTHING;
 
 -- Create updated_at trigger function

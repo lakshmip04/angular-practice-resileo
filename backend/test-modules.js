@@ -46,7 +46,7 @@ const validStudent = {
     lastName: 'Doe',
     email: 'john.doe@example.com',
     contact: '+1-555-0123',
-    dob: '2000-01-15',
+    dob: '2019-01-15',
     gender: 'Male'
 };
 

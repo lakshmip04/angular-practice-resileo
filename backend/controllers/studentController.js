@@ -1,4 +1,4 @@
-const pool = require('../config/connection');
+const { pool } = require('../config/connection');
 const { generateId, validateStudentData } = require('../utils');
 
 /**
@@ -313,8 +313,169 @@ const getStudentById = async (req, res) => {
   }
 };
 
+/**
+ * Update a student by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const updateStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID is required'
+      });
+    }
+
+    // Check if student exists
+    const existingStudent = await pool.query(
+      'SELECT id FROM students WHERE id = $1',
+      [id]
+    );
+
+    if (existingStudent.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    // Build dynamic update query
+    const updateFields = [];
+    const values = [];
+    let paramIndex = 1;
+
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined && key !== 'id') {
+        updateFields.push(`${key} = $${paramIndex}`);
+        values.push(updateData[key]);
+        paramIndex++;
+      }
+    });
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid fields to update'
+      });
+    }
+
+    // Add updated_at timestamp
+    updateFields.push(`updated_at = NOW()`);
+    values.push(id); // Add ID as the last parameter
+
+    const updateQuery = `
+      UPDATE students 
+      SET ${updateFields.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const result = await pool.query(updateQuery, values);
+    const updatedStudent = result.rows[0];
+
+    res.status(200).json({
+      success: true,
+      message: 'Student updated successfully',
+      data: {
+        id: updatedStudent.id,
+        firstName: updatedStudent.first_name,
+        lastName: updatedStudent.last_name,
+        email: updatedStudent.email,
+        contact: updatedStudent.contact,
+        dob: updatedStudent.dob,
+        gender: updatedStudent.gender,
+        address: {
+          street: updatedStudent.street,
+          city: updatedStudent.city,
+          state: updatedStudent.state,
+          zip: updatedStudent.zip,
+          country: updatedStudent.country
+        },
+        createdAt: updatedStudent.created_at,
+        updatedAt: updatedStudent.updated_at
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating student:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while updating student',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
+ * Delete a student by ID
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: 'Student ID is required'
+      });
+    }
+
+    // Check if student exists and get their info before deletion
+    const existingStudent = await pool.query(
+      'SELECT first_name, last_name, email FROM students WHERE id = $1',
+      [id]
+    );
+
+    if (existingStudent.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Student not found'
+      });
+    }
+
+    const studentInfo = existingStudent.rows[0];
+
+    // Delete the student
+    await pool.query(
+      'DELETE FROM students WHERE id = $1',
+      [id]
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `Student ${studentInfo.first_name} ${studentInfo.last_name} (${studentInfo.email}) deleted successfully`,
+      data: {
+        deletedStudentId: id,
+        deletedStudentInfo: {
+          firstName: studentInfo.first_name,
+          lastName: studentInfo.last_name,
+          email: studentInfo.email
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error deleting student:', error);
+    
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error while deleting student',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = {
   addStudent,
   getStudents,
-  getStudentById
+  getStudentById,
+  updateStudent,
+  deleteStudent
 }; 

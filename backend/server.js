@@ -48,6 +48,8 @@ app.get('/', (req, res) => {
       'GET /api/student': 'Get all students (supports search, pagination, sorting)',
       'GET /api/student/:id': 'Get student by ID',
       'POST /api/student': 'Create new student',
+      'PUT /api/student/:id': 'Update student by ID',
+      'DELETE /api/student/:id': 'Delete student by ID',
       'GET /api/student/health/check': 'Student routes health check'
     },
     documentation: {
@@ -60,7 +62,7 @@ app.get('/', (req, res) => {
           lastName: 'Doe',
           email: 'john.doe@example.com',
           contact: '+1-555-0123',
-          dob: '2000-01-15',
+          dob: '2019-01-15',
           gender: 'Male',
           street: '123 Main St',
           city: 'Los Angeles',
@@ -100,7 +102,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/student', studentRoutes);
 
 // 404 handler for undefined routes
-app.use('*', (req, res) => {
+app.use((req, res) => {
   res.status(404).json({
     success: false,
     message: `Route ${req.method} ${req.originalUrl} not found`,
@@ -109,7 +111,9 @@ app.use('*', (req, res) => {
       'GET /api/health': 'Health check',
       'POST /api/student': 'Create new student',
       'GET /api/student': 'Get all students',
-      'GET /api/student/:id': 'Get student by ID'
+      'GET /api/student/:id': 'Get student by ID',
+      'PUT /api/student/:id': 'Update student by ID',
+      'DELETE /api/student/:id': 'Delete student by ID'
     }
   });
 });
