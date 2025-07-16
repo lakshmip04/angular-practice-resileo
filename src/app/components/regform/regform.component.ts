@@ -224,7 +224,14 @@ export class RegformComponent implements OnInit {
       // Ensure names are resolved when data is combined for review
       genderName: this.getGenderLabel(this.firstFormGroup.get('gender')?.value),
       countryName: this.getCountryName(this.secondFormGroup.get('country')?.value),
-      stateName: this.getStateName(this.secondFormGroup.get('state')?.value)
+      stateName: this.getStateName(this.secondFormGroup.get('state')?.value),
+      address: {
+        street: this.secondFormGroup.get('street')?.value,
+        city: this.secondFormGroup.get('city')?.value,
+        state: this.secondFormGroup.get('state')?.value,
+        zip: this.secondFormGroup.get('zip')?.value,
+        country: this.secondFormGroup.get('country')?.value
+      }
     };
   }
 
@@ -379,11 +386,18 @@ export class RegformComponent implements OnInit {
            gender: this.combinedData.gender,
            email: this.combinedData.email,
            contact: this.combinedData.contact,
-           street: this.combinedData.street,
-           city: this.combinedData.city,
-           state: this.combinedData.state,
-           zip: this.combinedData.zip,
-           country: this.combinedData.country,
+           street: this.combinedData.address?.street || this.combinedData.street,
+           city: this.combinedData.address?.city || this.combinedData.city,
+           state: this.combinedData.address?.state || this.combinedData.state,
+           zip: this.combinedData.address?.zip || this.combinedData.zip,
+           country: this.combinedData.address?.country || this.combinedData.country,
+           address: {
+             street: this.combinedData.address?.street || this.combinedData.street,
+             city: this.combinedData.address?.city || this.combinedData.city,
+             state: this.combinedData.address?.state || this.combinedData.state,
+             zip: this.combinedData.address?.zip || this.combinedData.zip,
+             country: this.combinedData.address?.country || this.combinedData.country
+           },
            genderName: this.combinedData.genderName,
            countryName: this.combinedData.countryName,
            stateName: this.combinedData.stateName

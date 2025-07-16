@@ -86,9 +86,9 @@ export class StudentListComponent implements OnInit {
     try {
       const response = await this.studentService.getAllStudents().toPromise();
       
-      if (response?.success && response.data) {
-        this.students = response.data;
-        this.totalStudents = response.data.length;
+      if (response?.success && response.data && response.data.students) {
+        this.students = response.data.students;
+        this.totalStudents = response.data.pagination?.totalCount || response.data.students.length;
         this.applyFilter();
         
         this.snackBar.open(`Loaded ${this.students.length} students`, 'Close', {
@@ -125,6 +125,9 @@ export class StudentListComponent implements OnInit {
         student.lastName?.toLowerCase().includes(searchLower) ||
         student.email?.toLowerCase().includes(searchLower) ||
         student.contact?.toLowerCase().includes(searchLower) ||
+        student.address?.city?.toLowerCase().includes(searchLower) ||
+        student.address?.state?.toLowerCase().includes(searchLower) ||
+        student.address?.country?.toLowerCase().includes(searchLower) ||
         student.city?.toLowerCase().includes(searchLower) ||
         student.country?.toLowerCase().includes(searchLower)
       );
@@ -178,9 +181,14 @@ export class StudentListComponent implements OnInit {
    * Format location
    */
   getLocation(student: StudentWithActions): string {
-    const parts = [student.city, student.stateName, student.countryName]
+    // Try nested address first, then fall back to flat fields
+    const city = student.address?.city || student.city;
+    const state = student.address?.state || student.state || student.stateName;
+    const country = student.address?.country || student.country || student.countryName;
+    
+    const parts = [city, state, country]
       .filter(part => part && part.trim());
-    return parts.join(', ');
+    return parts.length > 0 ? parts.join(', ') : 'N/A';
   }
 
   /**

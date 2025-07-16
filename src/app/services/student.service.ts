@@ -4,17 +4,28 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 export interface StudentData {
+  id?: string;
   firstName: string;
   lastName: string;
   dob: string;
   gender: string;
   email: string;
   contact: string;
-  street: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zip: string;
+    country: string;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+  // Legacy flat fields for form compatibility
+  street?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+  country?: string;
   genderName?: string;
   countryName?: string;
   stateName?: string;
@@ -32,7 +43,7 @@ export interface ApiResponse {
 })
 export class StudentService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3000/api'; // This will be our Node.js backend URL
+  private baseUrl = 'http://localhost:3001/api'; // This will be our Node.js backend URL
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -48,7 +59,7 @@ export class StudentService {
    * @returns Observable<ApiResponse>
    */
   submitStudentRegistration(studentData: StudentData): Observable<ApiResponse> {
-    return this.http.post<ApiResponse>(`${this.baseUrl}/students`, studentData, this.httpOptions)
+    return this.http.post<ApiResponse>(`${this.baseUrl}/student`, studentData, this.httpOptions)
       .pipe(
         map(response => {
           console.log('Registration successful:', response);
@@ -63,7 +74,7 @@ export class StudentService {
    * @returns Observable<ApiResponse>
    */
   getAllStudents(): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/students`)
+    return this.http.get<ApiResponse>(`${this.baseUrl}/student`)
       .pipe(
         catchError(this.handleError)
       );
@@ -75,7 +86,7 @@ export class StudentService {
    * @returns Observable<ApiResponse>
    */
   getStudentById(id: string): Observable<ApiResponse> {
-    return this.http.get<ApiResponse>(`${this.baseUrl}/students/${id}`)
+    return this.http.get<ApiResponse>(`${this.baseUrl}/student/${id}`)
       .pipe(
         catchError(this.handleError)
       );
@@ -88,7 +99,7 @@ export class StudentService {
    * @returns Observable<ApiResponse>
    */
   updateStudent(id: string, studentData: Partial<StudentData>): Observable<ApiResponse> {
-    return this.http.put<ApiResponse>(`${this.baseUrl}/students/${id}`, studentData, this.httpOptions)
+    return this.http.put<ApiResponse>(`${this.baseUrl}/student/${id}`, studentData, this.httpOptions)
       .pipe(
         catchError(this.handleError)
       );
@@ -100,7 +111,7 @@ export class StudentService {
    * @returns Observable<ApiResponse>
    */
   deleteStudent(id: string): Observable<ApiResponse> {
-    return this.http.delete<ApiResponse>(`${this.baseUrl}/students/${id}`)
+    return this.http.delete<ApiResponse>(`${this.baseUrl}/student/${id}`)
       .pipe(
         catchError(this.handleError)
       );
